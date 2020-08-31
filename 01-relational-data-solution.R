@@ -8,7 +8,7 @@ library(nycflights13)
 # Is there a relationship between the age of a plane and its departure delays?
 ## consider the data frames you need to use to solve the problem
 glimpse(flights)
-view(planes)
+glimpse(planes)
 
 ## solution
 
@@ -26,7 +26,7 @@ flights %>%
 
 # Add the location of the origin and destination (i.e. the `lat` and `lon`) to `flights`
 glimpse(flights)
-view(airports)
+glimpse(airports)
 
 ## solution
 ### select only the necessary columns from airports
