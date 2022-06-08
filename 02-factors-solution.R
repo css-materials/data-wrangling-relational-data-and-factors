@@ -33,17 +33,18 @@ ggplot(data = gun_deaths,
 ## with geom_col() and fct_reorder()
 gun_deaths %>%
   count(month) %>%
-  ggplot(mapping = aes(x = fct_reorder(.f = month, .x = n), y = n)) +
+  mutate(month = fct_reorder(.f = month, .x = n)) %>%
+  ggplot(mapping = aes(x = month, y = n)) +
   geom_col() +
   labs(title = "Gun Deaths in the United States (2012-2014)",
        x = "Month",
        y = "Number of gun deaths")
 
 ## with geom_bar() and fct_infreq()
-ggplot(data = gun_deaths,
-       mapping = aes(x = month %>%
-                       fct_infreq() %>%
-                       fct_rev())) +
+gun_deaths %>%
+  mutate(month = fct_infreq(f = month) %>%
+           fct_rev()) %>%
+  ggplot(mapping = aes(x = month)) +
   geom_bar() +
   labs(title = "Gun Deaths in the United States (2012-2014)",
        x = "Month",
@@ -59,10 +60,10 @@ gun_deaths %>%
   # remove rows with missing intent values
   drop_na(intent) %>%
   # parse_factor() is a tidyverse friendly form of factor()
-  mutate(intent = parse_factor(intent, levels = intent_levels)) %>%
-  ggplot(mapping = aes(x = intent %>%
-                         fct_infreq() %>%
-                         fct_rev())) +
+  mutate(intent = parse_factor(intent, levels = intent_levels) %>%
+           fct_infreq() %>%
+           fct_rev()) %>%
+  ggplot(mapping = aes(x = intent)) +
   geom_bar() +
   labs(title = "Gun Deaths in the United States (2012-2014)",
        x = "Intent of death",
