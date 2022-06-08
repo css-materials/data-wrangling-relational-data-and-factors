@@ -60,6 +60,7 @@ gun_deaths %>%
   # remove rows with missing intent values
   drop_na(intent) %>%
   # parse_factor() is a tidyverse friendly form of factor()
+  # ensure values are properly ordered from highest to lowest frequency
   mutate(intent = parse_factor(intent, levels = intent_levels) %>%
            fct_infreq() %>%
            fct_rev()) %>%
