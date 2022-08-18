@@ -1,6 +1,6 @@
 # load required packages
 library(tidyverse)
-library(rcfss)
+library(rcis)
 
 # load the data
 data("gun_deaths")
