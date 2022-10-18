@@ -1,3 +1,5 @@
+# Practice working with factors
+
 # load required packages
 library(tidyverse)
 library(rcis)
@@ -6,18 +8,13 @@ library(rcis)
 data("gun_deaths")
 gun_deaths
 
-# Convert month into a factor column
+
+# QUESTION 1: convert month into a factor column
 
 
-# Visualize the total gun deaths per month, in chronological order
+# QUESTION 2: visualize the total gun deaths per month, in chronological order
 
 
-# Visualize the total gun deaths per month, sorted from lowest to highest
-
-
-# Visualize the frequency of intent of gun deaths using a bar chart,
-
-
-# Visualize total gun deaths by season of the year using a bar chart
+# QUESTION 3: visualize the total gun deaths per month, sorted from lowest to highest
 
 
