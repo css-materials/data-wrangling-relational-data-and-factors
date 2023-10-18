@@ -1,0 +1,260 @@
+---
+title: "more-dplyr-data-transformation"
+output: html_document
+date: '2023-10-18'
+author: Sabrina Nardin
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Code chunk
+
+* PC: Cntr + Alt + I
+* Mac: Cmd + Option + I
+
+Pipe
+
+* PC: Ctrl + Shift + M 
+* Mac: Cmd + Shift + M
+
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+```
+
+
+```{r}
+data("penguins")
+```
+
+
+## Explore the data
+
+```{r}
+# head and tail
+head(penguins)
+tail(penguins)
+rbind(head(penguins, 5), tail(penguins, 5))
+glimpse(penguins)
+```
+
+```{r}
+# dataset summaries
+str(penguins)
+summary(penguins)
+```
+
+
+## Basic dplyr functions
+
+select(): extracts columns/variables
+```{r}
+# select two specific variables using their names
+select(penguins, species, body_mass_g)
+
+# select all variables except two using the minus sign
+select(penguins, -year, -island)
+
+# select a range of contiguous/adjacent variables
+select(penguins, species:bill_length_mm)
+
+# select all variables except a range of contiguous ones
+select(penguins, -(species:island))
+
+# starts with
+select(penguins, starts_with("bill"))
+
+# ends with
+select(penguins, ends_with("mm"))
+```
+
+
+filter(): extracts rows/observations based on columns/variables values
+logical operators are commonly used with filter() 
+```{r}
+# ways to check variable values 
+levels(penguins$species) 
+unique(penguins$species)
+count(penguins, species)
+
+# filter by island and species
+filter(penguins, (island == "Biscoe") & (species == "Gentoo"))
+filter(penguins, island == "Biscoe", species == "Gentoo")
+
+# filter by multiple conditions
+filter(penguins, species %in% c("Adelie", "Gentoo"), island != "Biscoe")
+```
+
+filter() and missing data
+```{r}
+filter(penguins, is.na(sex))
+filter(penguins, !is.na(sex))
+
+# wrong code
+# filter(penguins, sex == NA)
+```
+
+summarize() and missing data
+```{r}
+penguins %>%
+  filter(species == "Adelie") %>%
+  summarize(avg_mass = mean(body_mass_g, na.rm = TRUE))
+```
+
+
+select() + filter()
+```{r}
+penguins %>% 
+  select(species, sex, year, island) %>% 
+  filter(island == "Torgersen")
+```
+
+
+relocate(): changes column order
+```{r}
+penguins %>%
+  relocate(year, sex)
+
+penguins %>% 
+  relocate(year, .after = island)
+```
+
+
+arrange(): changes row order
+```{r}
+penguins %>%
+  select(species, contains("bill")) %>%
+  filter(!species == "Adelie") %>% 
+  arrange(desc(bill_length_mm)) 
+
+penguins %>%
+  select(species, contains("bill")) %>%
+  filter(!species == "Adelie") %>% 
+  arrange(desc(species), bill_length_mm)
+```
+
+
+mutate(): changes values of columns and create new columns
+```{r}
+penguins %>% 
+  mutate(bill_ratio = bill_length_mm / bill_depth_mm)
+```
+
+
+summarize(): create summary stats
+```{r}
+penguins %>% 
+  summarize(body_mass_mean = mean(body_mass_g, na.rm = TRUE),
+            body_mass_sd = sd(body_mass_g, na.rm = TRUE),
+            n = n())
+
+penguins %>% 
+  filter(species == "Gentoo") %>% 
+  summarize(body_mass_mean = mean(body_mass_g, na.rm = TRUE),
+            body_mass_sd = sd(body_mass_g, na.rm = TRUE),
+            n = n())
+```
+
+
+group_by(): aggregate categorical variables into groups, often used together with summarize()
+```{r}
+penguins %>% 
+  group_by(island, sex) %>%
+  drop_na(sex) %>%
+  summarize(body_mass_mean = mean(body_mass_g, na.rm = TRUE))
+```
+
+
+count(): counts of observations by group
+```{r}
+# without count
+penguins %>% 
+  group_by(sex) %>% 
+  summarize(n = n())
+
+# with count
+penguins %>% 
+  count(sex)
+```
+
+
+## Other dplyr functions
+
+across(): facilitates syntax for column-wise operations, use inside functions like summarize() or mutate()
+```{r}
+# number of distinct entries for columns without across
+penguins %>%
+  summarise(distinct_species = n_distinct(species),
+            distinct_island = n_distinct(island),
+            distinct_year = n_distinct(year))
+
+# number of distinct entries for columns with across
+penguins %>%
+  summarise(across(c(species, island, year), 
+                   n_distinct))
+
+# the opposite
+penguins %>%
+  summarise(across(-c(species, island, year), 
+                   n_distinct))
+
+# everything
+penguins %>%
+  summarise(across(everything(), 
+                   n_distinct))
+
+# everything with sum of na
+penguins %>%
+  summarise(across(everything(), 
+                   ~sum(is.na(.))
+                   ))
+```
+
+
+crosstab of two variables
+```{r}
+# dplyr + tidyr
+penguins %>%
+  group_by(year, species) %>%
+  summarize(n = n()) %>%  # number of obs. in a row
+  spread(year, n)
+```
+
+
+## Renaming and recoding variables
+
+rename(): changes names of variables with new_name = old_name syntax
+```{r}
+penguins %>% 
+  rename(specie = species)
+
+# ps: remember to save results in a new dataframe
+```
+
+
+mutate() + recode() with old_name = new_name syntax
+```{r}
+# check
+count(penguins, sex)
+
+# mutate + recode
+penguins %>%
+  mutate(sex = recode(
+    sex,
+    male = 1, 
+    female = 0, 
+    .default = NA_real_)) %>%
+  count(sex)
+```
+
+mutate() + case_when()
+```{r}
+penguins %>%
+  mutate(sex = case_when(
+    sex == "female" ~ 0,  # old ~ new
+    sex == "male" ~ 1
+  )) %>%
+  count(sex)
+```
